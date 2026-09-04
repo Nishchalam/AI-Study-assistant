@@ -66,24 +66,22 @@ Focus on explaining WHY the mechanism works.
 """
 
 
-def practice_prompt(
+def practice_question_prompt(
     topic: str,
     difficulty: str = "intermediate",
-    num_questions: int = 5,
     focus: str = "mixed",
 ) -> str:
     return f"""
-Create a practice session on:
+Generate ONE practice question for an AI/ML study session.
 
 Topic: {topic}
 Difficulty: {difficulty}
-Number of questions: {num_questions}
 Focus: {focus}
 
-The purpose is to test whether I can actually reason about and apply
-the concepts.
+The question should test reasoning and understanding rather than
+simple definition recall.
 
-Include a mixture of:
+Possible question types include:
 
 - conceptual reasoning
 - application
@@ -92,11 +90,10 @@ Include a mixture of:
 - implementation reasoning
 - failure analysis
 
-Do not make the questions simple definition-recall questions.
+Do not provide the answer.
+Do not provide hints unless explicitly requested.
 
-Ask one question at a time.
-
-Do not reveal the answer until I attempt the question.
+Ask exactly ONE question.
 """
 
 
