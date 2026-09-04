@@ -10,4 +10,4 @@ if not GEMINI_API_KEY:
         "GEMINI_API_KEY is not set. Please add it to your .env file."
     )
 
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.7-flash")
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")

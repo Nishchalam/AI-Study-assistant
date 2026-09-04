@@ -1,17 +1,33 @@
-from google import genai
-
-from config import GEMINI_API_KEY, MODEL_NAME
+from chatbot import StudyChatbot
 
 
 def main():
-    client = genai.Client(api_key=GEMINI_API_KEY)
 
-    response = client.models.generate_content(
-        model=MODEL_NAME,
-        contents="Explain what a Transformer is in one sentence.",
-    )
+    chatbot = StudyChatbot()
 
-    print(response.text)
+    print("AI Study Assistant")
+    print("Type 'exit' to quit.")
+    print("Type 'clear' to clear the conversation.")
+    print()
+
+    while True:
+
+        user_input = input("You: ")
+
+        if user_input.lower() == "exit":
+            break
+
+        if user_input.lower() == "clear":
+            chatbot.clear_conversation()
+            print("Conversation cleared.\n")
+            continue
+
+        print("\nAssistant: ", end="", flush=True)
+
+        for chunk in chatbot.stream_response(user_input):
+            print(chunk, end="", flush=True)
+
+        print("\n")
 
 
 if __name__ == "__main__":
