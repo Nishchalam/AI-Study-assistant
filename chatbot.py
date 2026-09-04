@@ -4,7 +4,7 @@ from google import genai
 from google.genai import errors
 
 from config import GEMINI_API_KEY, MODEL_NAME
-from prompts import SYSTEM_PROMPT,practice_question_prompt
+from prompts import SYSTEM_PROMPT,practice_question_prompt,feedback_prompt
 
 
 class ConversationManager:
@@ -182,7 +182,7 @@ class StudyChatbot:
         )
 
         yield from self.stream_response(prompt)
-        
+
     def generate_practice_question(
         self,
         topic,
@@ -198,6 +198,21 @@ class StudyChatbot:
         )
 
         return self.stream_response(prompt)
+    
+    def evaluate_practice_answer(
+        self,
+        question,
+        user_answer,
+    ):
+        """Evaluate a student's answer."""
+
+        prompt = feedback_prompt(
+            question=question,
+            user_answer=user_answer,
+        )
+
+        return self.stream_response(prompt)
+    
     def clear_conversation(self):
         """Clear the current conversation."""
 

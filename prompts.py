@@ -110,16 +110,44 @@ Question:
 My answer:
 {user_answer}
 
-Evaluate it using:
+Return ONLY valid JSON.
+Do not use markdown.
+Do not add any text before or after the JSON.
 
-1. Verdict: Correct / Partially Correct / Incorrect
-2. What I got right
-3. What I got wrong
-4. Missing concept or misconception
-5. Correct reasoning
-6. Interview-quality answer
-7. One targeted follow-up question
+Use exactly this structure:
 
-Do not merely provide the correct answer.
-Identify WHY my reasoning succeeded or failed.
+{{
+    "verdict": "Correct",
+    "score": 0,
+    "what_was_correct": "",
+    "what_was_wrong": "",
+    "missing_concept": "",
+    "correct_reasoning": "",
+    "interview_answer": "",
+    "follow_up_question": ""
+}}
+
+Rules:
+
+- verdict must be exactly one of:
+  "Correct", "Partially Correct", "Incorrect"
+
+- score must be an integer from 0 to 10.
+
+- Evaluate the reasoning, not just whether keywords are present.
+
+- Give credit for technically correct reasoning even if the wording
+  differs from the expected explanation.
+
+- Identify misconceptions explicitly.
+
+- If the answer is incomplete, explain what is missing.
+
+- "interview_answer" should be a concise, technically strong answer
+  that the student could give in an interview.
+
+- "follow_up_question" should test the weakest important part of the
+  student's understanding.
+
+Do not invent facts.
 """
