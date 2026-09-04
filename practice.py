@@ -69,7 +69,23 @@ class PracticeSession:
     def is_complete(self):
         """Check whether the practice session is complete."""
 
-        return self.current_question_number >= self.total_questions
+        return (
+            len(self.answers) >= self.total_questions
+            and len(self.evaluations) >= self.total_questions
+        )
+
+    def get_results(self):
+        """Return all practice session results."""
+
+        return {
+            "topic": self.topic,
+            "difficulty": self.difficulty,
+            "focus": self.focus,
+            "total_questions": self.total_questions,
+            "questions": self.questions,
+            "answers": self.answers,
+            "evaluations": self.evaluations,
+        }
     
 # if __name__ == "__main__":
 

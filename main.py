@@ -1,4 +1,7 @@
 from chatbot import StudyChatbot
+from practice import PracticeSession
+import json
+
 def show_help():
     """Display available commands."""
 
@@ -11,7 +14,46 @@ Available commands:
   clear      Clear the conversation
   quit       Exit the application
 """)
-    
+
+def show_practice_report(session):
+    """Display the final practice session report."""
+
+    print("\n=== Practice Report ===")
+
+    print(f"Topic: {session.topic}")
+    print(f"Difficulty: {session.difficulty}")
+    print(f"Focus: {session.focus}")
+    print(f"Questions completed: {len(session.answers)}")
+
+    scores = []
+
+    for evaluation in session.evaluations:
+
+        try:
+            data = json.loads(evaluation)
+
+            score = data.get("score")
+
+            if isinstance(score, int):
+                scores.append(score)
+
+        except json.JSONDecodeError:
+            continue
+
+    if scores:
+        average_score = sum(scores) / len(scores)
+
+        print(f"Average score: {average_score:.1f}/10")
+
+        print("\nScores:")
+        for index, score in enumerate(scores, start=1):
+            print(f"  Question {index}: {score}/10")
+
+    else:
+        print("Average score: unavailable")
+
+    print()
+
 def main():
 
     chatbot = StudyChatbot()
@@ -125,22 +167,85 @@ def main():
                 "mixed",
             )
 
+            session = PracticeSession(
+                topic=topic,
+                difficulty=difficulty,
+                total_questions=num_questions,
+                focus=focus,
+            )
+
+            session.start()
+
             print("\n=== Practice Session ===")
             print(f"Topic: {topic}")
             print(f"Difficulty: {difficulty}")
             print(f"Questions: {num_questions}")
             print(f"Focus: {focus}")
 
-            print("\nQuestion 1:\n")
+            while True:
 
-            for chunk in chatbot.start_practice(
-                topic=topic,
-                difficulty=difficulty,
-                focus=focus,
-            ):
-                print(chunk, end="", flush=True)
+                print(
+                    f"\n--- Question "
+                    f"{session.current_question_number}/"
+                    f"{session.total_questions} ---\n"
+                )
 
-            print("\n")
+                print("Generating question...\n")
+
+                question_chunks = []
+
+                for chunk in chatbot.generate_practice_question(
+                    topic=session.topic,
+                    difficulty=session.difficulty,
+                    focus=session.focus,
+                ):
+                    print(chunk, end="", flush=True)
+                    question_chunks.append(chunk)
+
+                question = "".join(question_chunks).strip()
+
+                session.set_question(question)
+
+                print("\n")
+
+                answer = input("Your answer: ").strip()
+
+                if not answer:
+                    print(
+                        "Answer cannot be empty. "
+                        "Please try again.\n"
+                    )
+                    continue
+
+                session.submit_answer(answer)
+
+                print("\nEvaluating your answer...\n")
+
+                evaluation_chunks = []
+
+                for chunk in chatbot.evaluate_practice_answer(
+                    question=question,
+                    user_answer=answer,
+                ):
+                    print(chunk, end="", flush=True)
+                    evaluation_chunks.append(chunk)
+
+                evaluation_text = "".join(
+                    evaluation_chunks
+                ).strip()
+
+                session.add_evaluation(evaluation_text)
+
+                print("\n")
+
+                if not session.next_question():
+                    break
+
+            print("\n=== Practice Complete ===")
+
+            show_practice_report(session)
+
+            print("Practice session finished.\n")
 
             continue
 

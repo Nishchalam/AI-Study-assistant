@@ -5,8 +5,9 @@ Artificial Intelligence, Machine Learning, Deep Learning, and Large
 Language Models.
 
 The project uses the Google Gemini API to provide conversational
-technical explanations, streamed responses, practice-question
-generation, and basic conversation usage awareness.
+technical explanations, streamed responses, interactive practice
+sessions, AI-generated questions, answer evaluation, and basic
+conversation usage awareness.
 
 ---
 
@@ -19,19 +20,51 @@ generation, and basic conversation usage awareness.
 - Streaming responses
 - System-level study instructions
 - Technical explanations focused on understanding and reasoning
+- Concept, intuition, mathematical, implementation, interview, and
+  research-oriented explanations
 
-### Practice Mode
+### Interactive Practice Mode
 
-The `practice` command allows the user to configure:
+The `practice` command starts an interactive practice session.
+
+The user can configure:
 
 - Topic
 - Difficulty
 - Number of questions
 - Focus area
 
-The current implementation generates the first practice question.
-A full question → answer → evaluation → adaptive practice workflow is
-planned for a future version.
+The practice workflow is:
+
+```text
+Configure Session
+       ↓
+Generate Question
+       ↓
+Student Answer
+       ↓
+AI Evaluation
+       ↓
+Feedback
+       ↓
+Next Question
+       ↓
+Final Practice Report
+```
+
+Each answer is evaluated using:
+
+- Verdict
+- Score
+- What was correct
+- What was wrong
+- Missing concepts
+- Correct reasoning
+- Interview-quality answer
+- Follow-up question
+
+The session also calculates an average score from the completed
+evaluations.
 
 ### Error Handling
 
@@ -46,6 +79,9 @@ The application handles:
 
 Transient API errors are retried up to three times using exponential
 backoff.
+
+The implementation avoids retrying after partial streamed output to
+prevent duplicated responses.
 
 ### Conversation Summary
 
@@ -66,7 +102,7 @@ should not be treated as an exact billing or quota measurement.
 | Command | Description |
 |---|---|
 | `help` | Display available commands |
-| `practice` | Configure and start a practice session |
+| `practice` | Configure and start an interactive practice session |
 | `summary` | Display conversation statistics |
 | `clear` | Clear the current conversation |
 | `quit` | Exit the application |
@@ -79,33 +115,46 @@ study question and sent to Gemini.
 
 ## Example Usage
 
-Start the application:
+### Start the application
 
 ```bash
 python main.py
+```
+
+```text
 AI Study Assistant
 Type 'help' to see available commands.
+
 You: Explain RAG in simple words
+
 Assistant: Retrieval-Augmented Generation (RAG) combines...
 ```
-Follow-up questions retain the conversation context:
-```bash
+
+### Follow-up questions
+
+Conversation context is maintained across messages:
+
+```text
 You: What are its two main components?
+
 Assistant: The two main components are retrieval and generation...
 ```
-Check conversation usage:
-```bash
+
+### Check conversation usage
+
+```text
 You: summary
 
 --- Conversation Summary ---
-
 User messages: 2
 Assistant messages: 2
 Total messages: 4
 Approximate tokens: ~350
 ```
-Start practice mode:
-```bash
+
+### Start a practice session
+
+```text
 You: practice
 
 === Practice Mode ===
@@ -130,129 +179,201 @@ Focus:
 
 Choose focus [1]: 1
 ```
+
+The application then generates a question, accepts the student's answer,
+evaluates it, and continues until the configured number of questions has
+been completed.
+
+Example final report:
+
+```text
+=== Practice Report ===
+
+Topic: Transformers
+Difficulty: intermediate
+Focus: mixed
+Questions completed: 3
+Average score: 7.7/10
+
+Scores:
+  Question 1: 8/10
+  Question 2: 7/10
+  Question 3: 8/10
+
+Practice session finished.
+```
+
+---
+
 # Project Structure
 
-```bash
+```text
 AI-Study-assistant/
 │
 ├── main.py
 ├── chatbot.py
 ├── prompts.py
+├── practice.py
 ├── config.py
 ├── requirements.txt
 ├── .gitignore
-├── .env
-└── README.md
+├── README.md
+└── REFLECTION.md
 ```
 
-```main.py```
+### `main.py`
 
-Handles the command-line interface and user interaction.
+Handles:
 
-```chatbot.py```
+- Command-line interface
+- User interaction
+- Practice-session configuration
+- Practice workflow
+- Final practice report
+
+### `chatbot.py`
 
 Contains:
 
-Gemini client initialization
-Conversation management
-Streaming responses
-Error handling
-Retry logic
-Conversation statistics
+- Gemini client initialization
+- Conversation management
+- Streaming responses
+- Practice question generation
+- Practice answer evaluation
+- Error handling
+- Retry logic
+- Conversation statistics
 
-```prompts.py```
+### `practice.py`
+
+Contains the `PracticeSession` class responsible for:
+
+- Session configuration
+- Question state
+- Answer storage
+- Evaluation storage
+- Progress tracking
+- Session results
+
+### `prompts.py`
 
 Contains reusable prompt templates for:
 
-System instructions
-Concept explanations
-Practice questions
-Answer feedback
+- System instructions
+- Concept explanations
+- Practice questions
+- Answer evaluation
 
-```config.py```
+### `config.py`
 
 Loads environment variables and application configuration.
 
+---
+
 # Architecture
 
-```bash
-                    User
-                     │
-                     ▼
-                  main.py
-                     │
-          ┌──────────┼──────────┐
-          │          │          │
-        Chat       Commands   Practice
-          │          │          │
-          ▼          ▼          ▼
-                 StudyChatbot
-                     │
-                     ▼
-             ConversationManager
-                     │
-                     ▼
-                Gemini API
-                     │
-                     ▼
-             Streaming Response
+```text
+                         User
+                           │
+                           ▼
+                        main.py
+                    CLI / Interaction
+                           │
+              ┌────────────┴────────────┐
+              │                         │
+         Normal Chat              Practice Mode
+              │                         │
+              ▼                         ▼
+        StudyChatbot             PracticeSession
+              │                         │
+              ▼                         │
+     ConversationManager                │
+              │                         │
+              └────────────┬────────────┘
+                           │
+                           ▼
+                     Gemini API
+                           │
+                           ▼
+                  Streaming Responses
+                           │
+                           ▼
+                      User Output
 ```
 
+Prompt generation and evaluation logic are separated into `prompts.py`,
+while practice-session state is managed independently in `practice.py`.
+
+---
+
 # Setup
-1. Clone the repository
+
+## 1. Clone the repository
+
 ```bash
 git clone https://github.com/Nishchalam/AI-Study-assistant.git
 cd AI-Study-assistant
-``` 
+```
 
-2. Create a virtual environment
+## 2. Create a virtual environment
+
+### Linux/macOS
+
 ```bash
 python3 -m venv .venv
-```
-Activate it:
-```bash
-Linux/macOS
 source .venv/bin/activate
-Windows
+```
+
+### Windows
+
+```bash
+python -m venv .venv
 .venv\Scripts\activate
 ```
 
-3. Install dependencies
+## 3. Install dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Configure the Gemini API key
-```bash
-Create a .env file:
+## 4. Configure the Gemini API key
 
+Create a `.env` file in the project root:
+
+```text
 GEMINI_API_KEY=your_api_key_here
 GEMINI_MODEL=gemini-3.5-flash-lite
 ```
 
-**Do not commit the .env file to GitHub.**
+**Do not commit the `.env` file to GitHub.**
 
-The project includes **.env** in **.gitignore**.
+The project includes `.env` in `.gitignore`.
 
-5. Run the application
+## 5. Run the application
+
 ```bash
 python main.py
 ```
 
+---
 
 # Tech Stack
-```bash
-Python
-Google Gemini API
-google-genai
-python-dotenv
-Git/GitHub
-```
+
+- Python
+- Google Gemini API
+- `google-genai`
+- `python-dotenv`
+- Git
+- GitHub
+
+---
 
 # Design Approach
 
 The project follows the learning philosophy:
-```bash
+
+```text
 Understand
     ↓
 Reason
@@ -265,72 +386,155 @@ Critique
 ```
 
 The assistant is designed to prioritize conceptual understanding,
-reasoning, implementation considerations, limitations, and
-research/interview relevance rather than simple definition recall.
+first-principles reasoning, implementation considerations, limitations,
+and research/interview relevance rather than simple definition recall.
+
+The system prompt explicitly instructs the model to challenge
+misconceptions instead of blindly agreeing with the student.
+
+---
+
+# Engineering Decisions
+
+### Separation of Responsibilities
+
+The project separates:
+
+- CLI interaction
+- Gemini API communication
+- Prompt construction
+- Practice-session state
+
+This keeps the application easier to extend without placing all logic
+inside `main.py`.
+
+### Streaming
+
+Responses are streamed to the terminal instead of waiting for the
+complete model response.
+
+This improves perceived responsiveness and demonstrates handling of
+streaming API responses.
+
+### Retry Strategy
+
+Transient API errors such as rate limits and temporary server failures
+use exponential backoff.
+
+Responses are not retried after partial streaming output because doing so
+could duplicate already-displayed content.
+
+### Session State
+
+Practice-session state is maintained by Python rather than relying on
+the language model to track:
+
+- Current question
+- Number of questions
+- Answers
+- Evaluations
+- Progress
+
+The model is responsible for language generation and evaluation, while
+the application controls deterministic session state.
+
+---
 
 # Current Limitations
 
-The current version is intentionally a lightweight CLI prototype.
+This version is intentionally a lightweight CLI application.
 
-# Practice Mode
+### Practice Context
 
-Practice mode currently generates the first question but does not yet
-implement a complete interactive practice session.
+Practice mode currently uses the existing Gemini chat infrastructure.
+A future version should isolate practice conversations from normal chat
+context to prevent unrelated previous messages from influencing
+practice questions or evaluations.
 
-# Planned improvements include:
+### Evaluation Validation
 
-* Answer submission
-* Automatic answer evaluation
-* Per-question feedback
-* Session scoring
-* Adaptive difficulty
-* Weak-topic detection
-* Conversation History
+Practice evaluations are requested in JSON format, but the current
+implementation performs lightweight parsing rather than full schema
+validation.
 
-Conversation history is maintained by the Gemini Chat interface.
-Long conversations may increase context size and API usage.
+### Persistence
 
-A future version could introduce:
+Practice results and conversation history are not persisted between
+application runs.
 
-* Conversation summarization
-* History trimming
-* Persistent study sessions
-* Topic-specific memory
-* Token Usage
+### Adaptive Learning
 
-The current summary command uses an approximate character-to-token
-conversion. It is intended for awareness rather than precise API
+The current practice engine generates and evaluates questions but does
+not yet dynamically adjust difficulty based on previous performance.
+
+### Token Usage
+
+The `summary` command estimates token usage using a character-based
+approximation. It is intended for awareness rather than precise API
 billing or quota calculations.
 
+---
+
 # Future Improvements
-* Full interactive practice engine
-* Adaptive questioning
-* Answer evaluation and feedback
-* Persistent learning history
-* Topic-wise progress tracking
-* Retrieval-Augmented Generation (RAG)
-* Personal study material ingestion
-* Research-paper assistance
-* Interview preparation workflows
-* Web or graphical interface
-* More precise API usage tracking
+
+Potential future versions could include:
+
+- JSON schema validation
+- Separate Gemini context for practice sessions
+- Adaptive difficulty
+- Weak-topic detection
+- Persistent learning history
+- Topic-wise performance tracking
+- Spaced repetition
+- Retrieval-Augmented Generation (RAG)
+- Personal study-material ingestion
+- Research-paper assistance
+- Interview preparation workflows
+- Web or graphical interface
+- More precise API usage tracking
+- User profiles and authentication
+
+These features are intentionally outside the scope of the current
+milestone.
+
+---
 
 # Project Status
 
-Current milestone:
+**Current milestone: Step 6 — Interactive Practice Engine**
 
-Step 5 — Testing, Documentation, and Reflection
+### Implemented
 
-### Implemented:
+- Gemini API integration
+- Streaming chatbot
+- Multi-turn conversation management
+- Prompt templates
+- Error handling
+- Retry logic
+- Conversation usage summary
+- CLI command system
+- Practice-session state management
+- Configurable practice sessions
+- AI-generated practice questions
+- Student answer submission
+- AI answer evaluation
+- Structured evaluation output
+- Per-question scoring
+- Final practice-session report
 
-* Gemini API integration
-* Streaming chatbot
-* Conversation management
-* Prompt templates
-* Error handling
-* Usage summary
-* CLI command system
-* Practice-mode prototype
+The current version is a functional command-line AI study assistant
+with both conversational tutoring and interactive practice capabilities.
 
-# Next major development milestone: 
-Build the full interactive practice engine.
+---
+
+# Learning Reflection
+
+See [`REFLECTION.md`](REFLECTION.md) for the engineering and learning
+reflection behind the project, including:
+
+- Prompt design
+- Conversation state management
+- API cost awareness
+- Error handling
+- Design decisions
+- Lessons learned
