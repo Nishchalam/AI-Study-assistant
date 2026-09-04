@@ -182,7 +182,22 @@ class StudyChatbot:
         )
 
         yield from self.stream_response(prompt)
+        
+    def generate_practice_question(
+        self,
+        topic,
+        difficulty="intermediate",
+        focus="mixed",
+    ):
+        """Generate one practice question."""
 
+        prompt = practice_question_prompt(
+            topic=topic,
+            difficulty=difficulty,
+            focus=focus,
+        )
+
+        return self.stream_response(prompt)
     def clear_conversation(self):
         """Clear the current conversation."""
 
